@@ -1,14 +1,14 @@
 package service
 
-import "errors"
+import "vegadb/internal/engine"
 
 // Sentinel errors for store operations.
 var (
 	// ErrNotFound indicates the requested key does not exist.
-	ErrNotFound = errors.New("not found")
+	ErrNotFound = engine.ErrNotFound
 
 	// ErrClosed indicates the underlying store has been closed.
-	ErrClosed = errors.New("store closed")
+	ErrClosed = engine.ErrClosed
 )
 
 // Store defines the core interface satisfied by any storage engine backing VegaDB.

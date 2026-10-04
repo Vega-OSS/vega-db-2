@@ -289,7 +289,7 @@ func (db *DB) Close() error {
 }
 
 // Stats returns current internal metric counters.
-func (db *DB) Stats() Stats {
+func (db *DB) Stats() map[string]int64 {
 	st := db.state.Load()
 	var l0Count, l1Count int64
 	var memBytes int64
@@ -303,18 +303,18 @@ func (db *DB) Stats() Stats {
 		}
 	}
 
-	return Stats{
-		Puts:                db.puts.Load(),
-		Gets:                db.gets.Load(),
-		Deletes:             db.deletes.Load(),
-		Scans:               db.scans.Load(),
-		Flushes:             db.flushes.Load(),
-		Compactions:         db.compactions.Load(),
-		WriteStalls:         db.writeStalls.Load(),
-		GroupCommitBatches:  db.batches.Load(),
-		GroupCommitRequests: db.reqCount.Load(),
-		MemtableBytes:       memBytes,
-		L0Tables:            l0Count,
-		L1Tables:            l1Count,
+	return map[string]int64{
+		"puts":                  db.puts.Load(),
+		"gets":                  db.gets.Load(),
+		"deletes":               db.deletes.Load(),
+		"scans":                 db.scans.Load(),
+		"flushes":               db.flushes.Load(),
+		"compactions":           db.compactions.Load(),
+		"write_stalls":          db.writeStalls.Load(),
+		"group_commit_batches":  db.batches.Load(),
+		"group_commit_requests": db.reqCount.Load(),
+		"memtable_bytes":        memBytes,
+		"l0_tables":             l0Count,
+		"l1_tables":             l1Count,
 	}
 }

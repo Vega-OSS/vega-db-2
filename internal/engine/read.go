@@ -4,7 +4,6 @@ import (
 	"bytes"
 
 	"vegadb/internal/bufpool"
-	"vegadb/internal/lsm"
 	"vegadb/internal/memtable"
 	"vegadb/internal/record"
 	"vegadb/internal/vlog"
@@ -83,76 +82,3 @@ func (s *sliceIterator) Valid() bool        { return s.idx < len(s.entries) }
 func (s *sliceIterator) Key() []byte        { return s.entries[s.idx].Key }
 func (s *sliceIterator) Rec() record.Record { return s.entries[s.idx].Rec }
 func (s *sliceIterator) Close()             { s.entries = nil }
-
-// Scan iterates over keys in [start, end) up to limit entries, invoking fn for each key-value pair.
-func (db *DB) Scan(start, end []byte, limit int, fn func(key, value []byte) bool) error {
-	if db.closed.Load() {
-		return ErrClosed
-	}
-
-	db.scans.Add(1)
-
-	st := db.state.Load()
-	st.version.Ref()
-	defer st.version.Unref()
-
-	// 1. Snapshot active memtable under RLock via CopyRange
-	activeEntries := st.mem.CopyRange(start, end, limit)
-	activeIter := &sliceIterator{entries: activeEntries}
-
-	var children []lsm.Iterator
-	children = append(children, activeIter)
-
-	// 2. Frozen memtable iterator
-	if st.imm != nil {
-		children = append(children, st.imm.NewIterator())
-	}
-
-	// 3. Version iterators
-	children = append(children, st.version.NewIterator())
-
-	mIter := lsm.NewMergeIterator(children...)
-	defer mIter.Close()
-
-	if len(start) > 0 {
-		mIter.SeekGE(start)
-	} else {
-		mIter.First()
-	}
-
-	count := 0
-	for mIter.Valid() {
-		k := mIter.Key()
-		if len(end) > 0 && bytes.Compare(k, end) >= 0 {
-			break
-		}
-
-		rec := mIter.Rec()
-		if rec.Kind != record.KindTombstone {
-			buf := bufpool.Get(int(rec.Len))
-			err := db.vlog.ReadFrame(rec.File, rec.Off, rec.Len, buf.B)
-			if err == nil {
-				_, _, val, decodeErr := vlog.DecodeFrame(buf.B[:rec.Len])
-				if decodeErr == nil {
-					count++
-					cont := fn(k, val)
-					buf.Release()
-					if !cont {
-						break
-					}
-					if limit > 0 && count >= limit {
-						break
-					}
-				} else {
-					buf.Release()
-				}
-			} else {
-				buf.Release()
-			}
-		}
-
-		mIter.Next()
-	}
-
-	return nil
-}
