@@ -1,0 +1,8 @@
+.git
+data/
+bin/
+*.test
+*.prof
+coverage.out
+*.md
+!README.md

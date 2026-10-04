@@ -1,0 +1,29 @@
+services:
+  vega:
+    build: .
+    image: vegadb:dev
+    container_name: vegadb
+    ports:
+      - "50051:50051" # gRPC
+      - "8080:8080"   # REST
+    volumes:
+      - vega-data:/data
+    environment:
+      VEGA_SYNC: "always"
+      VEGA_MEMTABLE_MB: "64"
+      VEGA_PPROF_ADDR: "0.0.0.0:6060"
+      VEGA_LOG_LEVEL: "info"
+    mem_limit: 1g
+    cpus: 2
+    stop_grace_period: 30s
+    restart: unless-stopped
+    read_only: true
+    tmpfs:
+      - /tmp
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+
+volumes:
+  vega-data:
