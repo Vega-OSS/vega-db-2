@@ -1,4 +1,4 @@
-module github.com/Vega-OSS/vega-db
+module vegadb
 
 go 1.25.0
 

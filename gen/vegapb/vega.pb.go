@@ -705,7 +705,7 @@ const file_vega_proto_rawDesc = "" +
 	"\x04Scan\x12\x14.vega.v1.ScanRequest\x1a\v.vega.v1.KV0\x01\x12;\n" +
 	"\n" +
 	"BatchWrite\x12\x15.vega.v1.BatchRequest\x1a\x16.vega.v1.BatchResponse\x126\n" +
-	"\x05Stats\x12\x15.vega.v1.StatsRequest\x1a\x16.vega.v1.StatsResponseB(Z&github.com/Vega-OSS/vega-db/gen/vegapbb\x06proto3"
+	"\x05Stats\x12\x15.vega.v1.StatsRequest\x1a\x16.vega.v1.StatsResponseB\x13Z\x11vegadb/gen/vegapbb\x06proto3"
 
 var (
 	file_vega_proto_rawDescOnce sync.Once

@@ -6,11 +6,30 @@ import (
 	"math"
 )
 
-// ErrCorrupt indicates that an encoded entry has invalid or truncated data.
-var ErrCorrupt = errors.New("encoding: corrupt entry")
+var (
+	// ErrCorrupt indicates that an encoded entry has invalid or truncated data.
+	ErrCorrupt = errors.New("encoding: corrupt entry")
 
-// ErrShort indicates that the buffer is too small to contain the entry header.
-var ErrShort = errors.New("encoding: buffer too short")
+	// ErrShort indicates that the buffer is too small to contain the entry header.
+	ErrShort = errors.New("encoding: buffer too short")
+)
+
+// EncodedEntrySize returns the byte size required to encode an entry with keyLen and valueLen.
+func EncodedEntrySize(keyLen, valueLen int) int {
+	return UvarintSize(uint64(keyLen)) + UvarintSize(uint64(valueLen)) + keyLen + valueLen
+}
+
+// EncodeEntryTo serializes key and value into dst and returns bytes written.
+func EncodeEntryTo(dst, key, value []byte) int {
+	offset := 0
+	offset += PutUvarint(dst[offset:], uint64(len(key)))
+	offset += PutUvarint(dst[offset:], uint64(len(value)))
+	copy(dst[offset:], key)
+	offset += len(key)
+	copy(dst[offset:], value)
+	offset += len(value)
+	return offset
+}
 
 // EncodeEntry appends an entry formatted as [key len uvarint][val len uvarint][key][val] to dst.
 func EncodeEntry(dst, key, value []byte) []byte {

@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package vega.v1;
 
-option go_package = "github.com/Vega-OSS/vega-db/gen/vegapb";
+option go_package = "vegadb/gen/vegapb";
 
 service Vega {
   rpc Put(PutRequest) returns (PutResponse);

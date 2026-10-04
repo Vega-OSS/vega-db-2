@@ -6,7 +6,7 @@ import (
 	"math"
 	"testing"
 
-	"github.com/Vega-OSS/vega-db/internal/encoding"
+	"vegadb/internal/encoding"
 )
 
 func TestEncodeDecodeRoundTrip(t *testing.T) {
