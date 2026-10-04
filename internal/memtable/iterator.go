@@ -3,7 +3,7 @@ package memtable
 import (
 	"bytes"
 
-	"github.com/Vega-OSS/vega-db/internal/record"
+	"vegadb/internal/record"
 )
 
 // Iterator provides in-order traversal over a frozen memtable without acquiring locks.

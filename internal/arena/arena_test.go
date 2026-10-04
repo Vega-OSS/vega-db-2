@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"testing"
 
-	"github.com/Vega-OSS/vega-db/internal/arena"
+	"vegadb/internal/arena"
 )
 
 func TestArenaAlloc(t *testing.T) {

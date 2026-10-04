@@ -4,7 +4,7 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/Vega-OSS/vega-db/internal/bufpool"
+	"vegadb/internal/bufpool"
 )
 
 func TestBufpoolBoundaries(t *testing.T) {

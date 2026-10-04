@@ -7,8 +7,8 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/Vega-OSS/vega-db/internal/memtable"
-	"github.com/Vega-OSS/vega-db/internal/record"
+	"vegadb/internal/memtable"
+	"vegadb/internal/record"
 )
 
 func TestMemtableRandomizedMapOracle(t *testing.T) {

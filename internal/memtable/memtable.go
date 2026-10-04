@@ -5,8 +5,8 @@ import (
 	"sync"
 	"unsafe"
 
-	"github.com/Vega-OSS/vega-db/internal/arena"
-	"github.com/Vega-OSS/vega-db/internal/record"
+	"vegadb/internal/arena"
+	"vegadb/internal/record"
 )
 
 const (

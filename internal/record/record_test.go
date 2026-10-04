@@ -3,7 +3,7 @@ package record_test
 import (
 	"testing"
 
-	"github.com/Vega-OSS/vega-db/internal/record"
+	"vegadb/internal/record"
 )
 
 func TestRecordRoundTrip(t *testing.T) {

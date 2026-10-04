@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/Vega-OSS/vega-db/internal/bloom"
+	"vegadb/internal/bloom"
 )
 
 func TestBloomAccuracy(t *testing.T) {
