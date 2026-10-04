@@ -10,9 +10,9 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/Vega-OSS/vega-db/internal/metrics"
-	"github.com/Vega-OSS/vega-db/internal/restserver"
-	"github.com/Vega-OSS/vega-db/internal/service"
+	"vegadb/internal/metrics"
+	"vegadb/internal/restserver"
+	"vegadb/internal/service"
 )
 
 func setupTestServer(t *testing.T) (*restserver.Server, *httptest.Server) {

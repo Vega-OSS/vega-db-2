@@ -12,7 +12,7 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/Vega-OSS/vega-db/internal/service"
+	"vegadb/internal/service"
 )
 
 // Server encapsulates the HTTP REST API server for VegaDB.

@@ -15,10 +15,10 @@ import (
 	"google.golang.org/grpc/status"
 	"google.golang.org/grpc/test/bufconn"
 
-	"github.com/Vega-OSS/vega-db/gen/vegapb"
-	"github.com/Vega-OSS/vega-db/internal/grpcserver"
-	"github.com/Vega-OSS/vega-db/internal/metrics"
-	"github.com/Vega-OSS/vega-db/internal/service"
+	"vegadb/gen/vegapb"
+	"vegadb/internal/grpcserver"
+	"vegadb/internal/metrics"
+	"vegadb/internal/service"
 )
 
 const bufSize = 1024 * 1024

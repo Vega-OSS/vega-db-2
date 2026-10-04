@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 
-	"github.com/Vega-OSS/vega-db/internal/metrics"
+	"vegadb/internal/metrics"
 )
 
 // Service errors mapped across transports.

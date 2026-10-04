@@ -15,8 +15,8 @@ import (
 	"google.golang.org/grpc/reflection"
 	"google.golang.org/grpc/status"
 
-	"github.com/Vega-OSS/vega-db/gen/vegapb"
-	"github.com/Vega-OSS/vega-db/internal/service"
+	"vegadb/gen/vegapb"
+	"vegadb/internal/service"
 )
 
 // ServerOptions configures the gRPC server.

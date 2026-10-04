@@ -7,8 +7,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/Vega-OSS/vega-db/internal/metrics"
-	"github.com/Vega-OSS/vega-db/internal/service"
+	"vegadb/internal/metrics"
+	"vegadb/internal/service"
 )
 
 func TestServiceBasicOps(t *testing.T) {
