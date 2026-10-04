@@ -272,11 +272,15 @@ func (db *DB) doFlush() {
 		return
 	}
 
+	v := st.version
+	v.Ref()
+	defer v.Unref()
+
 	db.flushes.Add(1)
 
 	failpoint("flush_after_sst_before_manifest")
 
-	newVersion, _, err := lsm.Flush(st.imm, st.immTail, db.sstDir, db.manifest, st.version)
+	newVersion, _, err := lsm.Flush(st.imm, st.immTail, db.sstDir, db.manifest, v)
 	if err != nil {
 		db.readOnly.Store(true)
 		db.lastWriteErr = err
@@ -345,11 +349,15 @@ func (db *DB) doCompaction() {
 		return
 	}
 
+	v := st.version
+	v.Ref()
+	defer v.Unref()
+
 	db.compactions.Add(1)
 
 	failpoint("compaction_after_output_before_manifest")
 
-	newVersion, didCompact, err := lsm.CompactL0ToL1(db.sstDir, db.manifest, st.version, lsm.DefaultCompactionSplitSize)
+	newVersion, didCompact, err := lsm.CompactL0ToL1(db.sstDir, db.manifest, v, lsm.DefaultCompactionSplitSize)
 	if err != nil || !didCompact {
 		return
 	}

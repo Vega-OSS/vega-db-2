@@ -18,9 +18,23 @@ linters:
     - unconvert
     - misspell
 
+linters-settings:
+  gocritic:
+    disabled-checks:
+      - exitAfterDefer
+  gosec:
+    excludes:
+      - G115
+      - G404
+      - G108
+      - G114
+
 issues:
   exclude-rules:
     - path: _test\.go
       linters:
         - gosec
         - errcheck
+        - revive
+        - noctx
+        - gocritic

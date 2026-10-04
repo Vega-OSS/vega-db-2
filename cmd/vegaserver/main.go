@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"errors"
 	"flag"
 	"fmt"
 	"log/slog"
@@ -199,7 +200,7 @@ func main() {
 
 	go func() {
 		logger.Info("gRPC server listening", "addr", *grpcAddr)
-		if err := grpcSrv.GRPCServer().Serve(grpcListener); err != nil && err != grpc.ErrServerStopped {
+		if err := grpcSrv.GRPCServer().Serve(grpcListener); err != nil && !errors.Is(err, grpc.ErrServerStopped) {
 			logger.Error("gRPC server failed", "err", err)
 		}
 	}()

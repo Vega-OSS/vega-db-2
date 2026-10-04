@@ -223,7 +223,9 @@ func CompactL0ToL1(
 	}
 
 	// Combine remaining non-overlapping L1 tables with new L1 tables and sort by key
-	allL1 := append(nonOverlappingL1, newL1Tables...)
+	allL1 := make([]*sstable.Table, 0, len(nonOverlappingL1)+len(newL1Tables))
+	allL1 = append(allL1, nonOverlappingL1...)
+	allL1 = append(allL1, newL1Tables...)
 	sort.Slice(allL1, func(i, j int) bool {
 		return bytes.Compare(allL1[i].Smallest(), allL1[j].Smallest()) < 0
 	})
@@ -237,7 +239,8 @@ func CompactL0ToL1(
 				kept = append(kept, t)
 			}
 		}
-		s.Tables = append(kept, newManifestTables...)
+		kept = append(kept, newManifestTables...)
+		s.Tables = kept
 	})
 	if err != nil {
 		for _, t := range newL1Tables {
