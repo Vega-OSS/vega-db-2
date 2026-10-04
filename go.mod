@@ -3,6 +3,7 @@ module github.com/Vega-OSS/vega-db
 go 1.25.0
 
 require (
+	github.com/cespare/xxhash/v2 v2.3.0
 	google.golang.org/grpc v1.84.0
 	google.golang.org/protobuf v1.36.12
 )
