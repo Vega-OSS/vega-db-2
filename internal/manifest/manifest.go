@@ -8,7 +8,7 @@ import (
 	"path/filepath"
 	"sync"
 
-	"github.com/Vega-OSS/vega-db/internal/vlog"
+	"vegadb/internal/vlog"
 )
 
 // Table describes a registered SSTable tracked by the manifest.

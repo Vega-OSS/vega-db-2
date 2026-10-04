@@ -7,8 +7,8 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/Vega-OSS/vega-db/internal/manifest"
-	"github.com/Vega-OSS/vega-db/internal/vlog"
+	"vegadb/internal/manifest"
+	"vegadb/internal/vlog"
 )
 
 func TestManifestRoundTrip(t *testing.T) {

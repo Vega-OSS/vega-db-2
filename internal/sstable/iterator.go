@@ -4,9 +4,9 @@ import (
 	"bytes"
 	"sort"
 
-	"github.com/Vega-OSS/vega-db/internal/bufpool"
-	"github.com/Vega-OSS/vega-db/internal/encoding"
-	"github.com/Vega-OSS/vega-db/internal/record"
+	"vegadb/internal/bufpool"
+	"vegadb/internal/encoding"
+	"vegadb/internal/record"
 )
 
 // Iterator traverses keys and records across data blocks of an SSTable.

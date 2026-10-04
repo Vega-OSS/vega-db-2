@@ -7,9 +7,9 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/Vega-OSS/vega-db/internal/bloom"
-	"github.com/Vega-OSS/vega-db/internal/encoding"
-	"github.com/Vega-OSS/vega-db/internal/record"
+	"vegadb/internal/bloom"
+	"vegadb/internal/encoding"
+	"vegadb/internal/record"
 )
 
 // DefaultBlockSize is 4 KiB.
@@ -90,7 +90,7 @@ func (b *Builder) Add(key []byte, rec record.Record) error {
 	var recBuf [record.Size]byte
 	rec.Put(recBuf[:])
 
-	b.blockBuf = encoding.EncodeEntry(b.blockBuf, key, recBuf[:])
+	b.blockBuf = encoding.EncodeEntry(b.blockBuf, keyCopy, recBuf[:])
 	b.blockKeys = append(b.blockKeys, keyCopy)
 	b.allKeys = append(b.allKeys, keyCopy)
 	b.count++

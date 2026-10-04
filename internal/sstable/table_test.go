@@ -8,8 +8,8 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/Vega-OSS/vega-db/internal/record"
-	"github.com/Vega-OSS/vega-db/internal/sstable"
+	"vegadb/internal/record"
+	"vegadb/internal/sstable"
 )
 
 func TestSSTableBuildAndGet(t *testing.T) {

@@ -9,10 +9,10 @@ import (
 	"sort"
 	"sync/atomic"
 
-	"github.com/Vega-OSS/vega-db/internal/bloom"
-	"github.com/Vega-OSS/vega-db/internal/bufpool"
-	"github.com/Vega-OSS/vega-db/internal/encoding"
-	"github.com/Vega-OSS/vega-db/internal/record"
+	"vegadb/internal/bloom"
+	"vegadb/internal/bufpool"
+	"vegadb/internal/encoding"
+	"vegadb/internal/record"
 )
 
 // Table represents an open, readable SSTable file.

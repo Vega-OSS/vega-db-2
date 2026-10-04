@@ -4,7 +4,7 @@ import (
 	"encoding/binary"
 	"errors"
 
-	"github.com/Vega-OSS/vega-db/internal/encoding"
+	"vegadb/internal/encoding"
 )
 
 // Table constants.
