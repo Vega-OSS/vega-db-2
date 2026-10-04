@@ -19,6 +19,7 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 	healthpb "google.golang.org/grpc/health/grpc_health_v1"
 
+	"vegadb/internal/engine"
 	"vegadb/internal/grpcserver"
 	"vegadb/internal/metrics"
 	"vegadb/internal/restserver"
@@ -93,16 +94,16 @@ func main() {
 	grpcAddr := flag.String("grpc-addr", getEnv("VEGA_GRPC_ADDR", ":50051"), "gRPC listen address")
 	httpAddr := flag.String("http-addr", getEnv("VEGA_HTTP_ADDR", ":8080"), "REST listen address")
 	pprofAddr := flag.String("pprof-addr", getEnv("VEGA_PPROF_ADDR", ""), "pprof/expvar listen address")
-	_ = flag.String("sync", getEnv("VEGA_SYNC", "always"), "fsync policy (always|interval|never)")
-	_ = flag.Int("memtable-mb", getEnvInt("VEGA_MEMTABLE_MB", 64), "Memtable freeze size in MiB")
-	_ = flag.Int64("vlog-segment-mb", getEnvInt64("VEGA_VLOG_SEGMENT_MB", 1024), "vLog segment size in MiB")
+	syncStr := flag.String("sync", getEnv("VEGA_SYNC", "always"), "fsync policy (always|interval|never)")
+	memtableMB := flag.Int("memtable-mb", getEnvInt("VEGA_MEMTABLE_MB", 64), "Memtable freeze size in MiB")
+	vlogSegmentMB := flag.Int64("vlog-segment-mb", getEnvInt64("VEGA_VLOG_SEGMENT_MB", 1024), "vLog segment size in MiB")
 	maxInflight := flag.Int("max-inflight", getEnvInt("VEGA_MAX_INFLIGHT", 2048), "Max concurrent requests")
 	maxKeyBytes := flag.Int("max-key-bytes", getEnvInt("VEGA_MAX_KEY_BYTES", 8192), "Max key size in bytes")
 	maxValueMB := flag.Int("max-value-mb", getEnvInt("VEGA_MAX_VALUE_MB", 16), "Max value size in MiB")
-	_ = flag.Int("scan-prefetch", getEnvInt("VEGA_SCAN_PREFETCH", 8), "Goroutines fetching scan values")
-	_ = flag.Int("block-cache-mb", getEnvInt("VEGA_BLOCK_CACHE_MB", 64), "Block cache size in MiB")
+	scanPrefetch := flag.Int("scan-prefetch", getEnvInt("VEGA_SCAN_PREFETCH", 8), "Goroutines fetching scan values")
+	blockCacheMB := flag.Int("block-cache-mb", getEnvInt("VEGA_BLOCK_CACHE_MB", 64), "Block cache size in MiB")
 	logLevelStr := flag.String("log-level", getEnv("VEGA_LOG_LEVEL", "info"), "Log level (debug|info|warn|error)")
-	storeType := flag.String("store", getEnv("VEGA_STORE", "memory"), "Storage engine type (memory|engine)")
+	storeType := flag.String("store", getEnv("VEGA_STORE", "engine"), "Storage engine type (memory|engine)")
 	reflection := flag.Bool("reflection", getEnvBool("VEGA_REFLECTION", false), "Enable gRPC reflection")
 	flag.Parse()
 
@@ -133,8 +134,31 @@ func main() {
 		logger.Warn("WARNING: in-memory store, data is NOT persistent")
 		store = service.NewMemStore()
 	} else {
-		logger.Error("engine store not yet wired in M0b, using memory store fallback")
-		store = service.NewMemStore()
+		syncPolicy := engine.SyncAlways
+		switch strings.ToLower(*syncStr) {
+		case "interval":
+			syncPolicy = engine.SyncInterval
+		case "never":
+			syncPolicy = engine.SyncNever
+		}
+
+		opts := engine.Options{
+			Dir:             *dataDir,
+			MemtableSize:    *memtableMB * 1024 * 1024,
+			VlogSegmentSize: *vlogSegmentMB * 1024 * 1024,
+			MaxKeySize:      *maxKeyBytes,
+			MaxValueSize:    *maxValueMB * 1024 * 1024,
+			ScanPrefetch:    *scanPrefetch,
+			BlockCacheSize:  *blockCacheMB * 1024 * 1024,
+			Sync:            syncPolicy,
+		}
+
+		eng, err := engine.Open(opts)
+		if err != nil {
+			logger.Error("failed to open engine", "err", err)
+			os.Exit(1)
+		}
+		store = eng
 	}
 
 	m := metrics.New()

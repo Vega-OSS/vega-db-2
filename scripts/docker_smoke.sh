@@ -41,6 +41,24 @@ if [ "$grpc_val" != "bar" ]; then
 fi
 echo "gRPC PUT/GET succeeded: $grpc_val"
 
+echo "=== Testing persistence across restart ==="
+docker compose restart
+for i in $(seq 1 30); do
+  status=$(docker inspect --format '{{.State.Health.Status}}' vegadb 2>/dev/null || echo "starting")
+  if [ "$status" = "healthy" ]; then
+    echo "Container restarted and healthy!"
+    break
+  fi
+  sleep 1
+done
+
+persisted_val=$(curl -s -f localhost:8080/v1/kv/greeting)
+if [ "$persisted_val" != "hello" ]; then
+  echo "ERROR: Expected 'hello' after restart, got '$persisted_val'"
+  exit 1
+fi
+echo "Persistence verification succeeded: greeting = $persisted_val"
+
 echo "=== Testing graceful stop ==="
-docker compose stop
+docker compose down -v
 echo "=== Docker smoke test passed! ==="
