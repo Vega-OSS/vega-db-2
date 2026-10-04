@@ -2,7 +2,7 @@
 
 A high-performance single-node key-value storage engine implementing WiscKey.
 
-![CI](https://github.com/Vega-OSS/vega-db/actions/workflows/ci.yml/badge.svg)
+![CI](https://vegadb/actions/workflows/ci.yml/badge.svg)
 
 ## What It Is and Why
 
@@ -131,4 +131,4 @@ make verify
 
 ## License
 
-[MIT](LICENSE) © 2026 Vega-OSS contributors
+[MIT](LICENSE) © 2026 VegaDB contributors

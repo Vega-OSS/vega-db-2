@@ -19,10 +19,10 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 	healthpb "google.golang.org/grpc/health/grpc_health_v1"
 
-	"github.com/Vega-OSS/vega-db/internal/grpcserver"
-	"github.com/Vega-OSS/vega-db/internal/metrics"
-	"github.com/Vega-OSS/vega-db/internal/restserver"
-	"github.com/Vega-OSS/vega-db/internal/service"
+	"vegadb/internal/grpcserver"
+	"vegadb/internal/metrics"
+	"vegadb/internal/restserver"
+	"vegadb/internal/service"
 )
 
 func getEnv(key, defaultVal string) string {
