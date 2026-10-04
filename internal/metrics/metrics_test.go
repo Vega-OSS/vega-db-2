@@ -3,7 +3,7 @@ package metrics_test
 import (
 	"testing"
 
-	"github.com/Vega-OSS/vega-db/internal/metrics"
+	"vegadb/internal/metrics"
 )
 
 func TestMetricsSnapshot(t *testing.T) {

@@ -13,17 +13,18 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/Vega-OSS/vega-db/internal/lsm"
-	"github.com/Vega-OSS/vega-db/internal/manifest"
-	"github.com/Vega-OSS/vega-db/internal/memtable"
-	"github.com/Vega-OSS/vega-db/internal/record"
-	"github.com/Vega-OSS/vega-db/internal/sstable"
-	"github.com/Vega-OSS/vega-db/internal/vlog"
+	"vegadb/internal/lsm"
+	"vegadb/internal/manifest"
+	"vegadb/internal/memtable"
+	"vegadb/internal/record"
+	"vegadb/internal/sstable"
+	"vegadb/internal/vlog"
 )
 
 type readState struct {
 	mem     *memtable.Memtable
 	imm     *memtable.Memtable
+	immTail vlog.Position
 	version *lsm.Version
 }
 
@@ -52,6 +53,9 @@ type DB struct {
 	readOnly     atomic.Bool
 	lastWriteErr error
 	closeOnce    sync.Once
+
+	// Mutexes
+	compactMu sync.Mutex
 
 	// Counters
 	flushes     atomic.Int64
@@ -236,7 +240,11 @@ func (db *DB) Close() error {
 		close(db.reqCh)
 		<-db.writerDone
 
-		// 2. Trigger final flush if needed
+		// 2. Stop background loops
+		close(db.stopCh)
+		db.bgWG.Wait()
+
+		// 3. Trigger final flush if needed (background loops already stopped)
 		st := db.state.Load()
 		if st.mem.Len() > 0 && st.imm == nil {
 			st.mem.Freeze()
@@ -244,6 +252,7 @@ func (db *DB) Close() error {
 			newSt := &readState{
 				mem:     memtable.New(),
 				imm:     st.mem,
+				immTail: vlogTail,
 				version: st.version,
 			}
 			newSt.version.Ref()
@@ -251,7 +260,7 @@ func (db *DB) Close() error {
 			st.version.Unref()
 
 			// Perform final flush directly
-			newVer, _, err := lsm.Flush(newSt.imm, vlogTail, db.sstDir, db.manifest, newSt.version)
+			newVer, _, err := lsm.Flush(newSt.imm, newSt.immTail, db.sstDir, db.manifest, newSt.version)
 			if err == nil {
 				finalSt := &readState{
 					mem:     newSt.mem,
@@ -262,10 +271,6 @@ func (db *DB) Close() error {
 				newSt.version.Unref()
 			}
 		}
-
-		// 3. Stop background loops
-		close(db.stopCh)
-		db.bgWG.Wait()
 
 		// 4. Final sync and close
 		if err := db.vlog.Sync(); err != nil {

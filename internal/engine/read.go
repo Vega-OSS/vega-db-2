@@ -3,11 +3,11 @@ package engine
 import (
 	"bytes"
 
-	"github.com/Vega-OSS/vega-db/internal/bufpool"
-	"github.com/Vega-OSS/vega-db/internal/lsm"
-	"github.com/Vega-OSS/vega-db/internal/memtable"
-	"github.com/Vega-OSS/vega-db/internal/record"
-	"github.com/Vega-OSS/vega-db/internal/vlog"
+	"vegadb/internal/bufpool"
+	"vegadb/internal/lsm"
+	"vegadb/internal/memtable"
+	"vegadb/internal/record"
+	"vegadb/internal/vlog"
 )
 
 // Get retrieves the value for key, appending it to dst and returning dst.

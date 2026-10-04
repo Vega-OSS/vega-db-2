@@ -3,14 +3,13 @@ package engine
 import (
 	"errors"
 	"fmt"
-	"sync"
 	"time"
 
-	"github.com/Vega-OSS/vega-db/internal/bufpool"
-	"github.com/Vega-OSS/vega-db/internal/lsm"
-	"github.com/Vega-OSS/vega-db/internal/memtable"
-	"github.com/Vega-OSS/vega-db/internal/record"
-	"github.com/Vega-OSS/vega-db/internal/vlog"
+	"vegadb/internal/bufpool"
+	"vegadb/internal/lsm"
+	"vegadb/internal/memtable"
+	"vegadb/internal/record"
+	"vegadb/internal/vlog"
 )
 
 type request struct {
@@ -21,28 +20,13 @@ type request struct {
 	done  chan struct{}
 }
 
-var reqPool = sync.Pool{
-	New: func() any {
-		return &request{
-			done: make(chan struct{}, 1),
-		}
-	},
-}
-
-func getRequest(kind byte, key, value []byte) *request {
-	req := reqPool.Get().(*request)
-	req.kind = kind
-	req.key = key
-	req.value = value
-	req.err = nil
-	return req
-}
-
-func putRequest(req *request) {
-	req.key = nil
-	req.value = nil
-	req.err = nil
-	reqPool.Put(req)
+func newRequest(kind byte, key, value []byte) *request {
+	return &request{
+		kind:  kind,
+		key:   key,
+		value: value,
+		done:  make(chan struct{}, 1),
+	}
 }
 
 func (db *DB) enqueue(kind byte, key, value []byte) error {
@@ -66,8 +50,7 @@ func (db *DB) enqueue(kind byte, key, value []byte) error {
 		return errors.New("engine: value exceeds MaxValueSize")
 	}
 
-	req := getRequest(kind, key, value)
-	defer putRequest(req)
+	req := newRequest(kind, key, value)
 
 	select {
 	case db.reqCh <- req:
@@ -200,7 +183,11 @@ func (db *DB) processBatch(batch []*request, totalFrameBytes int) {
 			rec = record.Record{Kind: record.KindTombstone}
 		}
 		activeMem.Put(req.key, rec)
-		close(req.done)
+	}
+
+	// Notify callers after insertion into memtable
+	for _, req := range batch {
+		req.done <- struct{}{}
 	}
 
 	// Check memtable rotation
@@ -214,13 +201,16 @@ func (db *DB) failBatch(batch []*request, err error) {
 	db.lastWriteErr = err
 	for _, req := range batch {
 		req.err = err
-		close(req.done)
+		req.done <- struct{}{}
 	}
 }
 
 func (db *DB) rotateMemtable(activeMem *memtable.Memtable) {
 	// Stall writer if previous imm is still unflushed
 	for {
+		if db.readOnly.Load() {
+			return
+		}
 		st := db.state.Load()
 		if st.imm == nil {
 			break
@@ -241,6 +231,7 @@ func (db *DB) rotateMemtable(activeMem *memtable.Memtable) {
 		newSt := &readState{
 			mem:     freshMem,
 			imm:     activeMem,
+			immTail: vlogTail,
 			version: oldSt.version,
 		}
 		newSt.version.Ref()
@@ -273,18 +264,26 @@ func (db *DB) flusherLoop() {
 }
 
 func (db *DB) doFlush() {
+	db.compactMu.Lock()
+	defer db.compactMu.Unlock()
+
 	st := db.state.Load()
 	if st == nil || st.imm == nil {
 		return
 	}
 
 	db.flushes.Add(1)
-	vlogTail := db.vlog.Tail()
 
 	failpoint("flush_after_sst_before_manifest")
 
-	newVersion, _, err := lsm.Flush(st.imm, vlogTail, db.sstDir, db.manifest, st.version)
+	newVersion, _, err := lsm.Flush(st.imm, st.immTail, db.sstDir, db.manifest, st.version)
 	if err != nil {
+		db.readOnly.Store(true)
+		db.lastWriteErr = err
+		select {
+		case db.flushedCh <- struct{}{}:
+		default:
+		}
 		return
 	}
 
@@ -338,6 +337,9 @@ func (db *DB) compactorLoop() {
 }
 
 func (db *DB) doCompaction() {
+	db.compactMu.Lock()
+	defer db.compactMu.Unlock()
+
 	st := db.state.Load()
 	if st == nil || st.version == nil || len(st.version.L0) < 4 {
 		return
@@ -358,6 +360,7 @@ func (db *DB) doCompaction() {
 		swapped := &readState{
 			mem:     curr.mem,
 			imm:     curr.imm,
+			immTail: curr.immTail,
 			version: newVersion,
 		}
 		if db.state.CompareAndSwap(curr, swapped) {
