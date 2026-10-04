@@ -8,11 +8,11 @@ import (
 	"sort"
 	"sync/atomic"
 
-	"github.com/Vega-OSS/vega-db/internal/manifest"
-	"github.com/Vega-OSS/vega-db/internal/memtable"
-	"github.com/Vega-OSS/vega-db/internal/record"
-	"github.com/Vega-OSS/vega-db/internal/sstable"
-	"github.com/Vega-OSS/vega-db/internal/vlog"
+	"vegadb/internal/manifest"
+	"vegadb/internal/memtable"
+	"vegadb/internal/record"
+	"vegadb/internal/sstable"
+	"vegadb/internal/vlog"
 )
 
 // DefaultCompactionSplitSize is 64 MiB.

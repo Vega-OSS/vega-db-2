@@ -35,8 +35,8 @@ type Log struct {
 	segmentSize int64
 
 	// Writer state (owned by single writer goroutine)
-	activeID     uint32
-	activeOffset int64
+	activeID     atomic.Uint32
+	activeOffset atomic.Int64
 	activeFile   *os.File
 
 	// Reader cache
@@ -102,13 +102,13 @@ func Open(opts Options) (*Log, error) {
 	}
 
 	l := &Log{
-		dir:          vlogDir,
-		segmentSize:  segSize,
-		activeID:     activeID,
-		activeOffset: info.Size(),
-		activeFile:   f,
-		readers:      make(map[uint32]*os.File),
+		dir:         vlogDir,
+		segmentSize: segSize,
+		activeFile:  f,
+		readers:     make(map[uint32]*os.File),
 	}
+	l.activeID.Store(activeID)
+	l.activeOffset.Store(info.Size())
 
 	return l, nil
 }
@@ -122,43 +122,50 @@ func (l *Log) AppendBatch(frames []byte) (Position, error) {
 	}
 
 	batchLen := int64(len(frames))
-	if l.activeOffset > 0 && l.activeOffset+batchLen > l.segmentSize {
+	currOff := l.activeOffset.Load()
+	currID := l.activeID.Load()
+
+	if currOff > 0 && currOff+batchLen > l.segmentSize {
 		if err := l.rollSegment(); err != nil {
 			return Position{}, err
 		}
+		currOff = l.activeOffset.Load()
+		currID = l.activeID.Load()
 	}
 
 	pos := Position{
-		File: l.activeID,
-		Off:  uint64(l.activeOffset),
+		File: currID,
+		Off:  uint64(currOff),
 	}
 
 	n, err := l.activeFile.Write(frames)
 	if err != nil {
-		return Position{}, fmt.Errorf("vlog: write segment %d: %w", l.activeID, err)
+		return Position{}, fmt.Errorf("vlog: write segment %d: %w", currID, err)
 	}
-	l.activeOffset += int64(n)
+	l.activeOffset.Add(int64(n))
 	l.BytesWritten.Add(int64(n))
 
 	return pos, nil
 }
 
 func (l *Log) rollSegment() error {
+	currID := l.activeID.Load()
 	if err := l.activeFile.Sync(); err != nil {
-		return fmt.Errorf("vlog: sync before roll %d: %w", l.activeID, err)
+		return fmt.Errorf("vlog: sync before roll %d: %w", currID, err)
 	}
 	if err := l.activeFile.Close(); err != nil {
-		return fmt.Errorf("vlog: close before roll %d: %w", l.activeID, err)
+		return fmt.Errorf("vlog: close before roll %d: %w", currID, err)
 	}
 
-	l.activeID++
-	newPath := segmentPath(l.dir, l.activeID)
+	newID := currID + 1
+	newPath := segmentPath(l.dir, newID)
 	f, err := os.OpenFile(newPath, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0644)
 	if err != nil {
 		return fmt.Errorf("vlog: open new segment %s: %w", newPath, err)
 	}
 	l.activeFile = f
-	l.activeOffset = 0
+	l.activeID.Store(newID)
+	l.activeOffset.Store(0)
 	return nil
 }
 
@@ -173,8 +180,8 @@ func (l *Log) Sync() error {
 // Tail returns the current end position of the value log.
 func (l *Log) Tail() Position {
 	return Position{
-		File: l.activeID,
-		Off:  uint64(l.activeOffset),
+		File: l.activeID.Load(),
+		Off:  uint64(l.activeOffset.Load()),
 	}
 }
 
@@ -377,9 +384,9 @@ func (l *Log) Replay(from Position, fn func(pos Position, frame []byte) error) e
 			if err != nil {
 				return err
 			}
-			l.activeID = segID
+			l.activeID.Store(segID)
 			l.activeFile = activeF
-			l.activeOffset = lastGoodOffset
+			l.activeOffset.Store(lastGoodOffset)
 		}
 	}
 

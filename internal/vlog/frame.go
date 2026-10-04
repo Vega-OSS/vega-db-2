@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"math"
 
-	"github.com/Vega-OSS/vega-db/internal/encoding"
+	"vegadb/internal/encoding"
 )
 
 // Flag constants for vLog frames.

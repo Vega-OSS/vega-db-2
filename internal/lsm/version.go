@@ -5,8 +5,8 @@ import (
 	"sort"
 	"sync/atomic"
 
-	"github.com/Vega-OSS/vega-db/internal/record"
-	"github.com/Vega-OSS/vega-db/internal/sstable"
+	"vegadb/internal/record"
+	"vegadb/internal/sstable"
 )
 
 // Version represents an immutable point-in-time snapshot of active SSTables across levels.

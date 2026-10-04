@@ -9,7 +9,7 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/Vega-OSS/vega-db/internal/vlog"
+	"vegadb/internal/vlog"
 )
 
 func TestFrameEncodeDecode(t *testing.T) {

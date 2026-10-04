@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"container/heap"
 
-	"github.com/Vega-OSS/vega-db/internal/record"
+	"vegadb/internal/record"
 )
 
 // Iterator defines the common interface for memtable, table, and merge iterators.
@@ -71,7 +71,7 @@ func (m *MergeIterator) First() {
 		if child.Valid() {
 			m.h = append(m.h, &heapItem{
 				childIdx: i,
-				key:      child.Key(),
+				key:      bytes.Clone(child.Key()),
 				rec:      child.Rec(),
 			})
 		}
@@ -88,7 +88,7 @@ func (m *MergeIterator) SeekGE(key []byte) {
 		if child.Valid() {
 			m.h = append(m.h, &heapItem{
 				childIdx: i,
-				key:      child.Key(),
+				key:      bytes.Clone(child.Key()),
 				rec:      child.Rec(),
 			})
 		}
@@ -116,7 +116,7 @@ func (m *MergeIterator) advance() {
 	if child.Valid() {
 		heap.Push(&m.h, &heapItem{
 			childIdx: top.childIdx,
-			key:      child.Key(),
+			key:      bytes.Clone(child.Key()),
 			rec:      child.Rec(),
 		})
 	}
@@ -129,7 +129,7 @@ func (m *MergeIterator) advance() {
 		if dupChild.Valid() {
 			heap.Push(&m.h, &heapItem{
 				childIdx: dup.childIdx,
-				key:      dupChild.Key(),
+				key:      bytes.Clone(dupChild.Key()),
 				rec:      dupChild.Rec(),
 			})
 		}

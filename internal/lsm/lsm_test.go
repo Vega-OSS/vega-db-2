@@ -8,11 +8,11 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/Vega-OSS/vega-db/internal/lsm"
-	"github.com/Vega-OSS/vega-db/internal/manifest"
-	"github.com/Vega-OSS/vega-db/internal/memtable"
-	"github.com/Vega-OSS/vega-db/internal/record"
-	"github.com/Vega-OSS/vega-db/internal/vlog"
+	"vegadb/internal/lsm"
+	"vegadb/internal/manifest"
+	"vegadb/internal/memtable"
+	"vegadb/internal/record"
+	"vegadb/internal/vlog"
 )
 
 func TestMergeIteratorPriority(t *testing.T) {
