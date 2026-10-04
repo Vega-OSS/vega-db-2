@@ -27,7 +27,7 @@ func main() {
 
 	args := flag.Args()
 	if len(args) == 0 {
-		fmt.Fprintf(os.Stderr, "Usage: vegactl [--addr host:port] <put|get|del|health|scan|stats> [args...]\n")
+		fmt.Fprintf(os.Stderr, "Usage: vegactl [--addr host:port] <put|get|del|delete|health|scan|stats> [args...]\n")
 		os.Exit(1)
 	}
 
@@ -105,9 +105,9 @@ func main() {
 		fmt.Println()
 		os.Exit(0)
 
-	case "del":
+	case "del", "delete":
 		if len(args) < 2 {
-			fmt.Fprintf(os.Stderr, "Usage: vegactl del <key>\n")
+			fmt.Fprintf(os.Stderr, "Usage: vegactl del|delete <key>\n")
 			os.Exit(1)
 		}
 		key := []byte(args[1])
