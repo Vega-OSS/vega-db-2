@@ -1,0 +1,68 @@
+syntax = "proto3";
+
+package vega.v1;
+
+option go_package = "github.com/Vega-OSS/vega-db/gen/vegapb";
+
+service Vega {
+  rpc Put(PutRequest) returns (PutResponse);
+  rpc Get(GetRequest) returns (GetResponse);
+  rpc Delete(DeleteRequest) returns (DeleteResponse);
+  rpc Scan(ScanRequest) returns (stream KV);
+  rpc BatchWrite(BatchRequest) returns (BatchResponse);
+  rpc Stats(StatsRequest) returns (StatsResponse);
+}
+
+message PutRequest {
+  bytes key = 1;
+  bytes value = 2;
+}
+
+message PutResponse {}
+
+message GetRequest {
+  bytes key = 1;
+}
+
+message GetResponse {
+  bytes value = 1;
+}
+
+message DeleteRequest {
+  bytes key = 1;
+}
+
+message DeleteResponse {}
+
+message ScanRequest {
+  bytes start = 1;
+  bytes end = 2;
+  uint32 limit = 3;
+}
+
+message KV {
+  bytes key = 1;
+  bytes value = 2;
+}
+
+message BatchOp {
+  enum Kind {
+    PUT = 0;
+    DELETE = 1;
+  }
+  Kind kind = 1;
+  bytes key = 2;
+  bytes value = 3;
+}
+
+message BatchRequest {
+  repeated BatchOp ops = 1;
+}
+
+message BatchResponse {}
+
+message StatsRequest {}
+
+message StatsResponse {
+  map<string, int64> counters = 1;
+}
